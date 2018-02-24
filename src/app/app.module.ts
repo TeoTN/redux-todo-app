@@ -9,6 +9,7 @@ import { ProjectComponent } from './components/project/project.component';
 import { CardsService } from './services/cards.service';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { cardsReducer } from './store/cards.reducer';
+import { tasksReducer } from './store/tasks.reducer';
 
 
 @NgModule({
@@ -24,6 +25,7 @@ import { cardsReducer } from './store/cards.reducer';
     ReactiveFormsModule,
     StoreModule.forRoot({
       cards: cardsReducer,
+      tasks: tasksReducer,
     })
   ],
   providers: [
