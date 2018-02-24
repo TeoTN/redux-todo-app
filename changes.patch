@@ -1,55 +1,185 @@
-diff --git a/src/app/components/project/project.component.ts b/src/app/components/project/project.component.ts
-index 83cea1b..e1b63a0 100644
---- a/src/app/components/project/project.component.ts
-+++ b/src/app/components/project/project.component.ts
-@@ -1,7 +1,9 @@
--import {Component, OnInit} from '@angular/core';
--import {CardsService} from '../../services/cards.service';
--import {CardModel} from '../../models';
--import {Observable} from 'rxjs/Observable';
-+import { Component, OnInit } from '@angular/core';
-+import { CardModel } from '../../models';
-+import { Observable } from 'rxjs/Observable';
-+import { Store, select } from '@ngrx/store';
-+import { CardsState } from '../../store/cards.reducer';
-+
+diff --git a/package.json b/package.json
+index c3cf620..ab362e9 100644
+--- a/package.json
++++ b/package.json
+@@ -36,6 +36,7 @@
+     "@types/jasminewd2": "~2.0.2",
+     "@types/node": "~6.0.60",
+     "codelyzer": "^4.0.1",
++    "deepfreeze": "^2.0.0",
+     "jasmine-core": "~2.8.0",
+     "jasmine-spec-reporter": "~4.2.1",
+     "karma": "~2.0.0",
+diff --git a/src/app/app.module.ts b/src/app/app.module.ts
+index e29d317..91a2d05 100644
+--- a/src/app/app.module.ts
++++ b/src/app/app.module.ts
+@@ -9,6 +9,7 @@ import { ProjectComponent } from './components/project/project.component';
+ import { CardsService } from './services/cards.service';
+ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+ import { cardsReducer } from './store/cards.reducer';
++import { tasksReducer } from './store/tasks.reducer';
+ 
+ 
+ @NgModule({
+@@ -24,6 +25,7 @@ import { cardsReducer } from './store/cards.reducer';
+     ReactiveFormsModule,
+     StoreModule.forRoot({
+       cards: cardsReducer,
++      tasks: tasksReducer,
+     })
+   ],
+   providers: [
+diff --git a/src/app/components/card/card.component.ts b/src/app/components/card/card.component.ts
+index 30f2d66..aee0202 100644
+--- a/src/app/components/card/card.component.ts
++++ b/src/app/components/card/card.component.ts
+@@ -1,6 +1,9 @@
+ import {Component, Input, OnInit} from '@angular/core';
+ import {CardModel, TaskModel} from '../../models';
+ import {FormBuilder, FormGroup} from '@angular/forms';
++import { Store } from '@ngrx/store';
++import { TasksState } from '../../store/tasks.reducer';
++import { CreateTask } from '../../store/tasks.actions';
  
  @Component({
-   selector: 'app-project',
-@@ -11,11 +13,14 @@ import {Observable} from 'rxjs/Observable';
- export class ProjectComponent implements OnInit {
-   public cards$: Observable<CardModel[]>;
+   selector: 'app-card',
+@@ -13,8 +16,10 @@ export class CardComponent implements OnInit {
  
--  constructor(private cardsSvc: CardsService) {
--    this.cards$ = cardsSvc.cards$;
-+  constructor(private store: Store<CardsState>) {
-   }
+   public form: FormGroup;
+ 
+-  constructor(private fb: FormBuilder) {
+-  }
++  constructor(
++    private fb: FormBuilder,
++    private store: Store<TasksState>
++  ) {}
  
    ngOnInit() {
-+    this.cards$ = this.store
-+      .pipe(
-+        select('cards'),
-+      );
+     this.form = this.fb.group({
+@@ -24,7 +29,9 @@ export class CardComponent implements OnInit {
+ 
+   onSubmit() {
+     const {value} = this.form;
+-    this.card.addTask(new TaskModel(value.title));
++    const task = new TaskModel(value.title);
++    this.card.addTask(task);
++    this.store.dispatch(new CreateTask(task));
+     this.form.reset();
    }
  
- }
-diff --git a/src/app/store/cards.reducer.ts b/src/app/store/cards.reducer.ts
-index 492cb43..91a8d17 100644
---- a/src/app/store/cards.reducer.ts
-+++ b/src/app/store/cards.reducer.ts
-@@ -1,5 +1,7 @@
- import {CardModel, TaskModel} from '../models';
+diff --git a/src/app/store/cards.reducer.spec.ts b/src/app/store/cards.reducer.spec.ts
+index 09a3a32..c873b97 100644
+--- a/src/app/store/cards.reducer.spec.ts
++++ b/src/app/store/cards.reducer.spec.ts
+@@ -2,7 +2,7 @@ import { cardsReducer } from './cards.reducer';
  
-+export type CardsState = CardModel[];
-+
- const initialState = [
-   new CardModel('Todos'),
-   new CardModel('In progress'),
-@@ -11,6 +13,6 @@ const initialState = [
-     initialState[0].addTask(new TaskModel(title));
+ describe('Reducer', function () {
+   it('should provide initial state', function () {
+-    const stateAfter = cardsReducer(undefined, undefined);
++    const stateAfter = cardsReducer(undefined, { type: 'DEFAULT'});
+     expect(stateAfter.length).toEqual(3);
+     expect(stateAfter[0].tasks.length).toEqual(3);
    });
- 
--export function cardsReducer(state: any = initialState, action: any) {
-+export function cardsReducer(state: CardsState = initialState, action: any): CardsState {
-   return state;
- }
+diff --git a/src/app/store/tasks.actions.ts b/src/app/store/tasks.actions.ts
+new file mode 100644
+index 0000000..ddd16f8
+--- /dev/null
++++ b/src/app/store/tasks.actions.ts
+@@ -0,0 +1,24 @@
++import { Action } from '@ngrx/store';
++import { TaskModel } from '../models';
++
++export const CREATE_TASK = 'TASKS::CREATE';
++export const TASK_DONE = 'TASKS::MARK_AS_DONE';
++export const DEFAULT = 'DEFAULT';
++
++export class CreateTask implements Action {
++  readonly type = CREATE_TASK;
++  constructor(public payload: TaskModel) {}
++}
++
++export class TaskDone implements Action {
++  readonly type = TASK_DONE;
++  constructor(public id: number) {}
++}
++
++export class TestAction implements Action {
++  readonly type = DEFAULT;
++}
++
++export type TaskAction = CreateTask |
++  TaskDone |
++  TestAction;
+diff --git a/src/app/store/tasks.reducer.spec.ts b/src/app/store/tasks.reducer.spec.ts
+new file mode 100644
+index 0000000..82d237e
+--- /dev/null
++++ b/src/app/store/tasks.reducer.spec.ts
+@@ -0,0 +1,31 @@
++import { tasksReducer } from './tasks.reducer';
++import { TaskModel } from '../models';
++import { CreateTask, TaskDone } from './tasks.actions';
++import * as deepFreeze from 'deepfreeze';
++
++describe('Reducer', function () {
++  it('should provide initial state', function () {
++    const stateAfter = tasksReducer(undefined, {type: 'DEFAULT'});
++    expect(stateAfter.length).toEqual(3);
++  });
++
++  it('should append new task', function () {
++    const task = new TaskModel('New task');
++    const stateBefore = [];
++    const action = new CreateTask(task);
++    const stateAfter = [task];
++    deepFreeze(stateBefore);
++    deepFreeze(action);
++    expect(tasksReducer(stateBefore, action)).toEqual(stateAfter);
++  });
++
++  it('should mark task as done', function () {
++    const task = new TaskModel('New task');
++    const stateBefore = [task];
++    const action = new TaskDone(task.id);
++    const stateAfter = [Object.assign({}, task, {done: true})];
++    deepFreeze(stateBefore);
++    deepFreeze(action);
++    expect(tasksReducer(stateBefore, action)).toEqual(stateAfter);
++  });
++});
+diff --git a/src/app/store/tasks.reducer.ts b/src/app/store/tasks.reducer.ts
+new file mode 100644
+index 0000000..a345ffb
+--- /dev/null
++++ b/src/app/store/tasks.reducer.ts
+@@ -0,0 +1,29 @@
++import { TaskModel } from '../models';
++import { CREATE_TASK, TASK_DONE, TaskAction } from './tasks.actions';
++
++export type TasksState = TaskModel[];
++
++const initialState = [
++  new TaskModel('Use Redux!'),
++  new TaskModel('Learn TypeScript'),
++  new TaskModel('Read Angular docs'),
++];
++
++export function tasksReducer(state: TasksState = initialState, action: TaskAction): TasksState {
++  console.log('Tasks state: ', state);
++  console.log('Action: ', action);
++  switch (action.type) {
++    case CREATE_TASK:
++      return [
++        ...state,
++        action.payload,
++      ];
++    case TASK_DONE:
++      const taskIdx = state.findIndex(el => el.id === action.id);
++      const task = state[taskIdx];
++      const newTask = Object.assign({}, state[taskIdx], {done: !task.done});
++      return state.map((el, idx) => idx === taskIdx ? newTask : el);
++    default:
++      return state;
++  }
++}
