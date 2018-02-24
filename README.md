@@ -17,16 +17,20 @@ Observe that until now tasks were tightly coupled with cards: for instance,
 rearranging tasks requires mutating the cards state. In this step, your goal is to
 start separating tasks from cards.
 
-1. Prepare `tasks` and wire up a reducer that will default to all tasks 
+1. Prepare and wire up a `tasks` reducer that will default to all tasks 
    that appear in the project.
    
 2. Create `tasks.action.ts` file in which you will define two actions: 
-   one for creation of task and one for marking task as done. It can be convenient
-   to define actions as classes. 
-   Ensure that you also define a general `TaskAction` type and use it in 
-   the reducer.
+   one for creation of task and one for marking task as done. There are a few 
+   good practices that you should incorporate:
+   * An action should be a class implementing `@ngrx/store/Action` interface,
+   * Action type should be marked as `readonly` and be defined as separate variable
+     or enum value to avoid typo issues,
+   * Action should accept payload,
+   * There should be defined a general `TaskAction` type.
    
-3. Handle those actions in the reducer.
+3. Handle those actions in the reducer. Remember about `TasksState` and 
+   `TaskAction` types.
 
 4. Dispatch an action whenever a new task is created. 
 
