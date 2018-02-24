@@ -12,28 +12,17 @@ file contains diff after last step.
 
 *For development instructions and environment setup look below* 
 
-## Step 4
-The goal of this step is to ensure that cards 
-do not *own* tasks, but merely keep a list of tasks' ids they refer to. Moreover,
-we will provide means of selecting tasks for given card and ensure that tasks are 
-now rendered out of the actual state.
+## Step 5
+In this step you will be implementing remaining features that were present in the
+initial application:
 
-1. Refactor `CardModel` so that it keeps track of tasks ids instead of owning them.
-   (It will no longer handle adding a task.)
-   
-2. Handle `CreateTask` action in cards reducer.
+1. Create `MoveTaskUp` and `MoveTaskDown` actions
+2. Handle those actions in cards reducer
+3. Handle `TaskDone` action in tasks reducer
+4. Dispatch those actions in Card component
+5. Ensure that your tasks selector cares about card tasks' ids order
 
-3. Create a selector that for given card will return its tasks.
-   HINT: This actually may require you to make a function that takes a card
-   and returns actual selector.
-
-4. Connect Card component to the Store:
-   * Temporarily comment out bodies of `moveTaskUp`, `moveTaskDown` and `markTaskDone`
-     methods within Card component - their logic will be soon moved to reducer
-   * Create `tasks$` observable within Card component. Initialize it in `ngOnInit`
-     with `store.select(yourSelector(this.card))`.
-   * Ensure that Card template renders tasks from `tasks$` - utilise `| async`.
-   * At this point you no longer need `cards.service` - remove it.
+This step is the last one required to migrate the logic to Redux architecture.
 
 ## Development and environment setup
 

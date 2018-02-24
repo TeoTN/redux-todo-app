@@ -1,185 +1,264 @@
-diff --git a/package.json b/package.json
-index c3cf620..ab362e9 100644
---- a/package.json
-+++ b/package.json
-@@ -36,6 +36,7 @@
-     "@types/jasminewd2": "~2.0.2",
-     "@types/node": "~6.0.60",
-     "codelyzer": "^4.0.1",
-+    "deepfreeze": "^2.0.0",
-     "jasmine-core": "~2.8.0",
-     "jasmine-spec-reporter": "~4.2.1",
-     "karma": "~2.0.0",
 diff --git a/src/app/app.module.ts b/src/app/app.module.ts
-index e29d317..91a2d05 100644
+index 91a2d05..14bb433 100644
 --- a/src/app/app.module.ts
 +++ b/src/app/app.module.ts
-@@ -9,6 +9,7 @@ import { ProjectComponent } from './components/project/project.component';
- import { CardsService } from './services/cards.service';
+@@ -6,7 +6,6 @@ import { AppComponent } from './app.component';
+ import { TaskComponent } from './components/task/task.component';
+ import { CardComponent } from './components/card/card.component';
+ import { ProjectComponent } from './components/project/project.component';
+-import { CardsService } from './services/cards.service';
  import { FormsModule, ReactiveFormsModule } from '@angular/forms';
  import { cardsReducer } from './store/cards.reducer';
-+import { tasksReducer } from './store/tasks.reducer';
- 
- 
- @NgModule({
-@@ -24,6 +25,7 @@ import { cardsReducer } from './store/cards.reducer';
-     ReactiveFormsModule,
-     StoreModule.forRoot({
-       cards: cardsReducer,
-+      tasks: tasksReducer,
+ import { tasksReducer } from './store/tasks.reducer';
+@@ -28,9 +27,7 @@ import { tasksReducer } from './store/tasks.reducer';
+       tasks: tasksReducer,
      })
    ],
-   providers: [
+-  providers: [
+-    CardsService,
+-  ],
++  providers: [],
+   bootstrap: [AppComponent]
+ })
+ export class AppModule {
+diff --git a/src/app/components/card/card.component.html b/src/app/components/card/card.component.html
+index 1897b95..11beb7e 100644
+--- a/src/app/components/card/card.component.html
++++ b/src/app/components/card/card.component.html
+@@ -4,7 +4,7 @@
+   </p>
+   <div>
+     <app-task
+-      *ngFor="let task of card.tasks"
++      *ngFor="let task of tasks$ | async"
+       [task]="task"
+       (up)="moveTaskUp($event)"
+       (down)="moveTaskDown($event)"
 diff --git a/src/app/components/card/card.component.ts b/src/app/components/card/card.component.ts
-index 30f2d66..aee0202 100644
+index aee0202..7087bcb 100644
 --- a/src/app/components/card/card.component.ts
 +++ b/src/app/components/card/card.component.ts
-@@ -1,6 +1,9 @@
+@@ -1,9 +1,11 @@
  import {Component, Input, OnInit} from '@angular/core';
  import {CardModel, TaskModel} from '../../models';
  import {FormBuilder, FormGroup} from '@angular/forms';
-+import { Store } from '@ngrx/store';
-+import { TasksState } from '../../store/tasks.reducer';
-+import { CreateTask } from '../../store/tasks.actions';
+-import { Store } from '@ngrx/store';
+-import { TasksState } from '../../store/tasks.reducer';
++import { select, Store } from '@ngrx/store';
++import { tasksForCard, TasksState } from '../../store/tasks.reducer';
+ import { CreateTask } from '../../store/tasks.actions';
++import { Observable } from 'rxjs/Observable';
++import { CardsState } from '../../store/cards.reducer';
  
  @Component({
    selector: 'app-card',
-@@ -13,8 +16,10 @@ export class CardComponent implements OnInit {
- 
+@@ -13,49 +15,50 @@ import { CreateTask } from '../../store/tasks.actions';
+ export class CardComponent implements OnInit {
+   @Input()
+   public card: CardModel;
+-
    public form: FormGroup;
++  public tasks$: Observable<TaskModel[]>;
  
--  constructor(private fb: FormBuilder) {
--  }
-+  constructor(
-+    private fb: FormBuilder,
-+    private store: Store<TasksState>
-+  ) {}
+   constructor(
+     private fb: FormBuilder,
+-    private store: Store<TasksState>
++    private store: Store<{tasks: TasksState, cards: CardsState}>
+   ) {}
  
    ngOnInit() {
      this.form = this.fb.group({
-@@ -24,7 +29,9 @@ export class CardComponent implements OnInit {
+       title: '',
+     });
++    const tasksSelector = tasksForCard(this.card);
++    this.tasks$ = this.store.pipe(select(tasksSelector));
+   }
  
    onSubmit() {
      const {value} = this.form;
--    this.card.addTask(new TaskModel(value.title));
-+    const task = new TaskModel(value.title);
-+    this.card.addTask(task);
-+    this.store.dispatch(new CreateTask(task));
+     const task = new TaskModel(value.title);
+-    this.card.addTask(task);
+-    this.store.dispatch(new CreateTask(task));
++    this.store.dispatch(new CreateTask(this.card.id, task));
      this.form.reset();
    }
  
-diff --git a/src/app/store/cards.reducer.spec.ts b/src/app/store/cards.reducer.spec.ts
-index 09a3a32..c873b97 100644
---- a/src/app/store/cards.reducer.spec.ts
-+++ b/src/app/store/cards.reducer.spec.ts
-@@ -2,7 +2,7 @@ import { cardsReducer } from './cards.reducer';
+   moveTaskUp(id: number) {
+-    const {tasks} = this.card;
+-    const idx = tasks.findIndex(card => card.id === id);
+-    if (idx < 1) {
+-      return;
+-    }
+-    [tasks[idx - 1], tasks[idx]] = [tasks[idx], tasks[idx - 1]]; // Swap tasks
++    // const {tasks} = this.card;
++    // const idx = tasks.findIndex(card => card.id === id);
++    // if (idx < 1) {
++    //   return;
++    // }
++    // [tasks[idx - 1], tasks[idx]] = [tasks[idx], tasks[idx - 1]]; // Swap tasks
+   }
  
- describe('Reducer', function () {
-   it('should provide initial state', function () {
--    const stateAfter = cardsReducer(undefined, undefined);
-+    const stateAfter = cardsReducer(undefined, { type: 'DEFAULT'});
-     expect(stateAfter.length).toEqual(3);
-     expect(stateAfter[0].tasks.length).toEqual(3);
-   });
-diff --git a/src/app/store/tasks.actions.ts b/src/app/store/tasks.actions.ts
-new file mode 100644
-index 0000000..ddd16f8
---- /dev/null
-+++ b/src/app/store/tasks.actions.ts
-@@ -0,0 +1,24 @@
-+import { Action } from '@ngrx/store';
-+import { TaskModel } from '../models';
-+
-+export const CREATE_TASK = 'TASKS::CREATE';
-+export const TASK_DONE = 'TASKS::MARK_AS_DONE';
-+export const DEFAULT = 'DEFAULT';
-+
-+export class CreateTask implements Action {
-+  readonly type = CREATE_TASK;
-+  constructor(public payload: TaskModel) {}
-+}
-+
-+export class TaskDone implements Action {
-+  readonly type = TASK_DONE;
-+  constructor(public id: number) {}
-+}
-+
-+export class TestAction implements Action {
-+  readonly type = DEFAULT;
-+}
-+
-+export type TaskAction = CreateTask |
-+  TaskDone |
-+  TestAction;
-diff --git a/src/app/store/tasks.reducer.spec.ts b/src/app/store/tasks.reducer.spec.ts
-new file mode 100644
-index 0000000..82d237e
---- /dev/null
-+++ b/src/app/store/tasks.reducer.spec.ts
-@@ -0,0 +1,31 @@
-+import { tasksReducer } from './tasks.reducer';
-+import { TaskModel } from '../models';
-+import { CreateTask, TaskDone } from './tasks.actions';
-+import * as deepFreeze from 'deepfreeze';
-+
-+describe('Reducer', function () {
-+  it('should provide initial state', function () {
-+    const stateAfter = tasksReducer(undefined, {type: 'DEFAULT'});
-+    expect(stateAfter.length).toEqual(3);
-+  });
-+
-+  it('should append new task', function () {
-+    const task = new TaskModel('New task');
-+    const stateBefore = [];
-+    const action = new CreateTask(task);
-+    const stateAfter = [task];
-+    deepFreeze(stateBefore);
-+    deepFreeze(action);
-+    expect(tasksReducer(stateBefore, action)).toEqual(stateAfter);
-+  });
-+
-+  it('should mark task as done', function () {
-+    const task = new TaskModel('New task');
-+    const stateBefore = [task];
-+    const action = new TaskDone(task.id);
-+    const stateAfter = [Object.assign({}, task, {done: true})];
-+    deepFreeze(stateBefore);
-+    deepFreeze(action);
-+    expect(tasksReducer(stateBefore, action)).toEqual(stateAfter);
-+  });
-+});
-diff --git a/src/app/store/tasks.reducer.ts b/src/app/store/tasks.reducer.ts
-new file mode 100644
-index 0000000..a345ffb
---- /dev/null
-+++ b/src/app/store/tasks.reducer.ts
-@@ -0,0 +1,29 @@
-+import { TaskModel } from '../models';
-+import { CREATE_TASK, TASK_DONE, TaskAction } from './tasks.actions';
-+
-+export type TasksState = TaskModel[];
-+
-+const initialState = [
-+  new TaskModel('Use Redux!'),
-+  new TaskModel('Learn TypeScript'),
-+  new TaskModel('Read Angular docs'),
-+];
-+
-+export function tasksReducer(state: TasksState = initialState, action: TaskAction): TasksState {
-+  console.log('Tasks state: ', state);
-+  console.log('Action: ', action);
+   moveTaskDown(id: number) {
+-    const {tasks} = this.card;
+-    const idx = tasks.findIndex(card => card.id === id);
+-    if (idx >= tasks.length - 1) {
+-      return;
+-    }
+-    [tasks[idx + 1], tasks[idx]] = [tasks[idx], tasks[idx + 1]]; // Swap tasks
++    // const {tasks} = this.card;
++    // const idx = tasks.findIndex(card => card.id === id);
++    // if (idx >= tasks.length - 1) {
++    //   return;
++    // }
++    // [tasks[idx + 1], tasks[idx]] = [tasks[idx], tasks[idx + 1]]; // Swap tasks
+   }
+ 
+   markTaskDone(id: number) {
+-    const {tasks} = this.card;
+-    const idx = tasks.findIndex(card => card.id === id);
+-    tasks[idx].done = !tasks[idx].done;
++    // const {tasks} = this.card;
++    // const idx = tasks.findIndex(card => card.id === id);
++    // tasks[idx].done = !tasks[idx].done;
+   }
+ }
+diff --git a/src/app/models/card.model.ts b/src/app/models/card.model.ts
+index 2a2d178..94bc359 100644
+--- a/src/app/models/card.model.ts
++++ b/src/app/models/card.model.ts
+@@ -1,15 +1,9 @@
+-import {TaskModel} from './task.model';
+-
+ let lastID = 0;
+ 
+ export class CardModel {
+-  public tasks: TaskModel[] = [];
++  public tasks: number[] = [];
+   public id: number;
+   constructor(public title: string) {
+     this.id = lastID++;
+   }
+-
+-  addTask(task: TaskModel) {
+-    this.tasks.push(task);
+-  }
+ }
+diff --git a/src/app/services/cards.service.spec.ts b/src/app/services/cards.service.spec.ts
+deleted file mode 100644
+index abde597..0000000
+--- a/src/app/services/cards.service.spec.ts
++++ /dev/null
+@@ -1,15 +0,0 @@
+-import { TestBed, inject } from '@angular/core/testing';
+-
+-import { CardsService } from './cards.service';
+-
+-describe('CardsService', () => {
+-  beforeEach(() => {
+-    TestBed.configureTestingModule({
+-      providers: [CardsService]
+-    });
+-  });
+-
+-  it('should be created', inject([CardsService], (service: CardsService) => {
+-    expect(service).toBeTruthy();
+-  }));
+-});
+diff --git a/src/app/services/cards.service.ts b/src/app/services/cards.service.ts
+deleted file mode 100644
+index f345537..0000000
+--- a/src/app/services/cards.service.ts
++++ /dev/null
+@@ -1,19 +0,0 @@
+-import {Injectable} from '@angular/core';
+-import {CardModel, TaskModel} from '../models';
+-import {BehaviorSubject} from 'rxjs/BehaviorSubject';
+-
+-const card1 = new CardModel('Todos');
+-const card2 = new CardModel('In progress');
+-const card3 = new CardModel('Todos');
+-card1.addTask(new TaskModel('Use Redux!'));
+-card1.addTask(new TaskModel('Learn TypeScript'));
+-card1.addTask(new TaskModel('Read Angular docs'));
+-
+-@Injectable()
+-export class CardsService {
+-  private cards = new BehaviorSubject<CardModel[]>([card1, card2, card3]);
+-  public cards$ = this.cards.asObservable();
+-
+-  constructor() {
+-  }
+-}
+diff --git a/src/app/store/cards.reducer.ts b/src/app/store/cards.reducer.ts
+index 91a8d17..666b152 100644
+--- a/src/app/store/cards.reducer.ts
++++ b/src/app/store/cards.reducer.ts
+@@ -1,18 +1,25 @@
+-import {CardModel, TaskModel} from '../models';
++import {CardModel} from '../models';
++import { CREATE_TASK } from './tasks.actions';
+ 
+ export type CardsState = CardModel[];
++const card1 = new CardModel('Todos');
++const card2 = new CardModel('In progress');
++const card3 = new CardModel('Done');
++card1.tasks = [0, 1, 2];
+ 
+ const initialState = [
+-  new CardModel('Todos'),
+-  new CardModel('In progress'),
+-  new CardModel('Todos'),
++  card1, card2, card3,
+ ];
+ 
+-['Use Redux!', 'Learn TypeScript', 'Read Angular docs']
+-  .forEach(function addTask(title) {
+-    initialState[0].addTask(new TaskModel(title));
+-  });
+-
+ export function cardsReducer(state: CardsState = initialState, action: any): CardsState {
+-  return state;
++  console.log('Cards state', state);
++  console.log('Action', action);
 +  switch (action.type) {
 +    case CREATE_TASK:
-+      return [
-+        ...state,
-+        action.payload,
-+      ];
-+    case TASK_DONE:
-+      const taskIdx = state.findIndex(el => el.id === action.id);
-+      const task = state[taskIdx];
-+      const newTask = Object.assign({}, state[taskIdx], {done: !task.done});
-+      return state.map((el, idx) => idx === taskIdx ? newTask : el);
++      const card = state.find(el => el.id === action.cardId);
++      const updatedCard = Object.assign({}, card, {tasks: [...card.tasks, action.payload.id]});
++      return state.map(el => el.id === card.id ? updatedCard : el);
 +    default:
 +      return state;
 +  }
+ }
+diff --git a/src/app/store/tasks.actions.ts b/src/app/store/tasks.actions.ts
+index ddd16f8..afcd605 100644
+--- a/src/app/store/tasks.actions.ts
++++ b/src/app/store/tasks.actions.ts
+@@ -7,7 +7,7 @@ export const DEFAULT = 'DEFAULT';
+ 
+ export class CreateTask implements Action {
+   readonly type = CREATE_TASK;
+-  constructor(public payload: TaskModel) {}
++  constructor(public cardId: number, public payload: TaskModel) {}
+ }
+ 
+ export class TaskDone implements Action {
+diff --git a/src/app/store/tasks.reducer.ts b/src/app/store/tasks.reducer.ts
+index a345ffb..23b4408 100644
+--- a/src/app/store/tasks.reducer.ts
++++ b/src/app/store/tasks.reducer.ts
+@@ -1,5 +1,6 @@
+ import { TaskModel } from '../models';
+ import { CREATE_TASK, TASK_DONE, TaskAction } from './tasks.actions';
++import { createSelector } from '@ngrx/store';
+ 
+ export type TasksState = TaskModel[];
+ 
+@@ -27,3 +28,8 @@ export function tasksReducer(state: TasksState = initialState, action: TaskActio
+       return state;
+   }
+ }
++
++export const getTasksState = state => state.tasks;
++export function tasksForCard(card) {
++  return createSelector(getTasksState, tasks => tasks.filter(task => card.tasks.includes(task.id)));
 +}
