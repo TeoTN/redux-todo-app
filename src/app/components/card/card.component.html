@@ -1,0 +1,17 @@
+<div class="card">
+  <p class="title">
+    {{card.title}}
+  </p>
+  <div>
+    <app-task
+      *ngFor="let task of card.tasks"
+      [task]="task"
+      (up)="moveTaskUp($event)"
+      (down)="moveTaskDown($event)"
+      (done)="markTaskDone($event)">
+    </app-task>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <input type="text" placeholder="✓ What needs to be done?" formControlName="title">
+    </form>
+  </div>
+</div>

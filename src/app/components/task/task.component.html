@@ -1,0 +1,14 @@
+<div class="task" [ngClass]="{'done': task.done}">
+  <p>{{task.title}}</p>
+  <div class="toolbar">
+    <button (click)="markAsDone()">
+      <i class="fas fa-check"></i>
+    </button>
+    <button (click)="moveUp()">
+      <i class="fas fa-angle-up"></i>
+    </button>
+    <button (click)="moveDown()">
+      <i class="fas fa-angle-down"></i>
+    </button>
+  </div>
+</div>

@@ -1,0 +1,4 @@
+<h1>Project</h1>
+<div class="project">
+  <app-card *ngFor="let card of cards$ | async" [card]="card" class="card"></app-card>
+</div>
