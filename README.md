@@ -12,18 +12,23 @@ file contains diff after last step.
 
 *For development instructions and environment setup look below* 
 
-## Step 2 
-The previous step was quite a tedious one but it is actually performed only once per
-major feature. We have built our initial cards reducer but we can't really verify 
-if it suits our needs without connecting it to the component. In this step, we will
-ensure that cards are rendered out of the component.
+## Step 3
+Observe that until now tasks were tightly coupled with cards: for instance,
+rearranging tasks requires mutating the cards state. In this step, your goal is to
+start separating tasks from cards.
 
-1. Refactor: Define a type for the cards state shape that will be used by the reducer.
-2. Render Cards out of the state: replace Cards Service within Project component
-   with the cards store (HINT: Inject `Store<...>`).
-3. Within the cards component, expose the list of cards to the template using 
-   `select` method. Notice that the method returns an `Observable`.
-  
+1. Prepare `tasks` and wire up a reducer that will default to all tasks 
+   that appear in the project.
+   
+2. Create `tasks.action.ts` file in which you will define two actions: 
+   one for creation of task and one for marking task as done. It can be convenient
+   to define actions as classes. 
+   Ensure that you also define a general `TaskAction` type and use it in 
+   the reducer.
+   
+3. Handle those actions in the reducer.
+
+4. Dispatch an action whenever a new task is created. 
 
 ## Development and environment setup
 
