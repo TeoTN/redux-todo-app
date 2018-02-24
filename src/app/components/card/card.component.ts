@@ -1,6 +1,9 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {CardModel, TaskModel} from '../../models';
 import {FormBuilder, FormGroup} from '@angular/forms';
+import { Store } from '@ngrx/store';
+import { TasksState } from '../../store/tasks.reducer';
+import { CreateTask } from '../../store/tasks.actions';
 
 @Component({
   selector: 'app-card',
@@ -13,8 +16,10 @@ export class CardComponent implements OnInit {
 
   public form: FormGroup;
 
-  constructor(private fb: FormBuilder) {
-  }
+  constructor(
+    private fb: FormBuilder,
+    private store: Store<TasksState>
+  ) {}
 
   ngOnInit() {
     this.form = this.fb.group({
@@ -24,7 +29,9 @@ export class CardComponent implements OnInit {
 
   onSubmit() {
     const {value} = this.form;
-    this.card.addTask(new TaskModel(value.title));
+    const task = new TaskModel(value.title);
+    this.card.addTask(task);
+    this.store.dispatch(new CreateTask(task));
     this.form.reset();
   }
 

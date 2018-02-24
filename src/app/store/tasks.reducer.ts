@@ -10,6 +10,8 @@ const initialState = [
 ];
 
 export function tasksReducer(state: TasksState = initialState, action: TaskAction): TasksState {
+  console.log('Tasks state: ', state);
+  console.log('Action: ', action);
   switch (action.type) {
     case CREATE_TASK:
       return [
