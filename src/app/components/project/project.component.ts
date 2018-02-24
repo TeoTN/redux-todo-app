@@ -1,7 +1,9 @@
-import {Component, OnInit} from '@angular/core';
-import {CardsService} from '../../services/cards.service';
-import {CardModel} from '../../models';
-import {Observable} from 'rxjs/Observable';
+import { Component, OnInit } from '@angular/core';
+import { CardModel } from '../../models';
+import { Observable } from 'rxjs/Observable';
+import { Store, select } from '@ngrx/store';
+import { CardsState } from '../../store/cards.reducer';
+
 
 @Component({
   selector: 'app-project',
@@ -11,11 +13,14 @@ import {Observable} from 'rxjs/Observable';
 export class ProjectComponent implements OnInit {
   public cards$: Observable<CardModel[]>;
 
-  constructor(private cardsSvc: CardsService) {
-    this.cards$ = cardsSvc.cards$;
+  constructor(private store: Store<CardsState>) {
   }
 
   ngOnInit() {
+    this.cards$ = this.store
+      .pipe(
+        select('cards'),
+      );
   }
 
 }

@@ -1,5 +1,7 @@
 import {CardModel, TaskModel} from '../models';
 
+export type CardsState = CardModel[];
+
 const initialState = [
   new CardModel('Todos'),
   new CardModel('In progress'),
@@ -11,6 +13,6 @@ const initialState = [
     initialState[0].addTask(new TaskModel(title));
   });
 
-export function cardsReducer(state: any = initialState, action: any) {
+export function cardsReducer(state: CardsState = initialState, action: any): CardsState {
   return state;
 }
