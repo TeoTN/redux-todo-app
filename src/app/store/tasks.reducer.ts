@@ -31,5 +31,5 @@ export function tasksReducer(state: TasksState = initialState, action: TaskActio
 
 export const getTasksState = state => state.tasks;
 export function tasksForCard(card) {
-  return createSelector(getTasksState, tasks => tasks.filter(task => card.tasks.includes(task.id)));
+  return createSelector(getTasksState, tasks => card.tasks.map(taskId => tasks[taskId]));
 }

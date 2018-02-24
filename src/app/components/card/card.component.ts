@@ -3,9 +3,10 @@ import {CardModel, TaskModel} from '../../models';
 import {FormBuilder, FormGroup} from '@angular/forms';
 import { select, Store } from '@ngrx/store';
 import { tasksForCard, TasksState } from '../../store/tasks.reducer';
-import { CreateTask } from '../../store/tasks.actions';
+import { CreateTask, MoveTaskDown, MoveTaskUp, TaskDone } from '../../store/tasks.actions';
 import { Observable } from 'rxjs/Observable';
 import { CardsState } from '../../store/cards.reducer';
+import { tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-card',
@@ -28,7 +29,10 @@ export class CardComponent implements OnInit {
       title: '',
     });
     const tasksSelector = tasksForCard(this.card);
-    this.tasks$ = this.store.pipe(select(tasksSelector));
+    this.tasks$ = this.store.pipe(
+      select(tasksSelector),
+      tap(state => {console.log('new tasks', state)}),
+    );
   }
 
   onSubmit() {
@@ -39,26 +43,14 @@ export class CardComponent implements OnInit {
   }
 
   moveTaskUp(id: number) {
-    // const {tasks} = this.card;
-    // const idx = tasks.findIndex(card => card.id === id);
-    // if (idx < 1) {
-    //   return;
-    // }
-    // [tasks[idx - 1], tasks[idx]] = [tasks[idx], tasks[idx - 1]]; // Swap tasks
+    this.store.dispatch(new MoveTaskUp(this.card.id, id));
   }
 
   moveTaskDown(id: number) {
-    // const {tasks} = this.card;
-    // const idx = tasks.findIndex(card => card.id === id);
-    // if (idx >= tasks.length - 1) {
-    //   return;
-    // }
-    // [tasks[idx + 1], tasks[idx]] = [tasks[idx], tasks[idx + 1]]; // Swap tasks
+    this.store.dispatch(new MoveTaskDown(this.card.id, id));
   }
 
   markTaskDone(id: number) {
-    // const {tasks} = this.card;
-    // const idx = tasks.findIndex(card => card.id === id);
-    // tasks[idx].done = !tasks[idx].done;
+    this.store.dispatch(new TaskDone(id));
   }
 }
