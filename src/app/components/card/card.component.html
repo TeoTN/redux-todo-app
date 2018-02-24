@@ -4,7 +4,7 @@
   </p>
   <div>
     <app-task
-      *ngFor="let task of card.tasks"
+      *ngFor="let task of tasks$ | async"
       [task]="task"
       (up)="moveTaskUp($event)"
       (down)="moveTaskDown($event)"

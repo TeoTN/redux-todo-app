@@ -1,5 +1,6 @@
 import { TaskModel } from '../models';
 import { CREATE_TASK, TASK_DONE, TaskAction } from './tasks.actions';
+import { createSelector } from '@ngrx/store';
 
 export type TasksState = TaskModel[];
 
@@ -26,4 +27,9 @@ export function tasksReducer(state: TasksState = initialState, action: TaskActio
     default:
       return state;
   }
+}
+
+export const getTasksState = state => state.tasks;
+export function tasksForCard(card) {
+  return createSelector(getTasksState, tasks => tasks.filter(task => card.tasks.includes(task.id)));
 }

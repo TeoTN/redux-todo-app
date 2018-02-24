@@ -6,7 +6,6 @@ import { AppComponent } from './app.component';
 import { TaskComponent } from './components/task/task.component';
 import { CardComponent } from './components/card/card.component';
 import { ProjectComponent } from './components/project/project.component';
-import { CardsService } from './services/cards.service';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { cardsReducer } from './store/cards.reducer';
 import { tasksReducer } from './store/tasks.reducer';
@@ -28,9 +27,7 @@ import { tasksReducer } from './store/tasks.reducer';
       tasks: tasksReducer,
     })
   ],
-  providers: [
-    CardsService,
-  ],
+  providers: [],
   bootstrap: [AppComponent]
 })
 export class AppModule {

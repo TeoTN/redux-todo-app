@@ -7,7 +7,7 @@ export const DEFAULT = 'DEFAULT';
 
 export class CreateTask implements Action {
   readonly type = CREATE_TASK;
-  constructor(public payload: TaskModel) {}
+  constructor(public cardId: number, public payload: TaskModel) {}
 }
 
 export class TaskDone implements Action {

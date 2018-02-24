@@ -1,18 +1,25 @@
-import {CardModel, TaskModel} from '../models';
+import {CardModel} from '../models';
+import { CREATE_TASK } from './tasks.actions';
 
 export type CardsState = CardModel[];
+const card1 = new CardModel('Todos');
+const card2 = new CardModel('In progress');
+const card3 = new CardModel('Done');
+card1.tasks = [0, 1, 2];
 
 const initialState = [
-  new CardModel('Todos'),
-  new CardModel('In progress'),
-  new CardModel('Todos'),
+  card1, card2, card3,
 ];
 
-['Use Redux!', 'Learn TypeScript', 'Read Angular docs']
-  .forEach(function addTask(title) {
-    initialState[0].addTask(new TaskModel(title));
-  });
-
 export function cardsReducer(state: CardsState = initialState, action: any): CardsState {
-  return state;
+  console.log('Cards state', state);
+  console.log('Action', action);
+  switch (action.type) {
+    case CREATE_TASK:
+      const card = state.find(el => el.id === action.cardId);
+      const updatedCard = Object.assign({}, card, {tasks: [...card.tasks, action.payload.id]});
+      return state.map(el => el.id === card.id ? updatedCard : el);
+    default:
+      return state;
+  }
 }
