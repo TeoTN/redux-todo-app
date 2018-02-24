@@ -12,27 +12,28 @@ file contains diff after last step.
 
 *For development instructions and environment setup look below* 
 
-## Step 3
-Observe that until now tasks were tightly coupled with cards: for instance,
-rearranging tasks requires mutating the cards state. In this step, your goal is to
-start separating tasks from cards.
+## Step 4
+The goal of this step is to ensure that cards 
+do not *own* tasks, but merely keep a list of tasks' ids they refer to. Moreover,
+we will provide means of selecting tasks for given card and ensure that tasks are 
+now rendered out of the actual state.
 
-1. Prepare and wire up a `tasks` reducer that will default to all tasks 
-   that appear in the project.
+1. Refactor `CardModel` so that it keeps track of tasks ids instead of owning them.
+   (It will no longer handle adding a task.)
    
-2. Create `tasks.action.ts` file in which you will define two actions: 
-   one for creation of task and one for marking task as done. There are a few 
-   good practices that you should incorporate:
-   * An action should be a class implementing `@ngrx/store/Action` interface,
-   * Action type should be marked as `readonly` and be defined as separate variable
-     or enum value to avoid typo issues,
-   * Action should accept payload,
-   * There should be defined a general `TaskAction` type.
-   
-3. Handle those actions in the reducer. Remember about `TasksState` and 
-   `TaskAction` types.
+2. Handle `CreateTask` action in cards reducer.
 
-4. Dispatch an action whenever a new task is created. 
+3. Create a selector that for given card will return its tasks.
+   HINT: This actually may require you to make a function that takes a card
+   and returns actual selector.
+
+4. Connect Card component to the Store:
+   * Temporarily comment out bodies of `moveTaskUp`, `moveTaskDown` and `markTaskDone`
+     methods within Card component - their logic will be soon moved to reducer
+   * Create `tasks$` observable within Card component. Initialize it in `ngOnInit`
+     with `store.select(yourSelector(this.card))`.
+   * Ensure that Card template renders tasks from `tasks$` - utilise `| async`.
+   * At this point you no longer need `cards.service` - remove it.
 
 ## Development and environment setup
 
