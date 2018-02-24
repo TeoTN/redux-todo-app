@@ -12,20 +12,18 @@ file contains diff after last step.
 
 *For development instructions and environment setup look below* 
 
-## Step 1
-The application you are presented, contains a few overly complicated solutions 
-and risky parts that could be simplified and redesigned with usage of 
-`@ngrx/store`.
+## Step 2 
+The previous step was quite a tedious one but it is actually performed only once per
+major feature. We have built our initial cards reducer but we can't really verify 
+if it suits our needs without connecting it to the component. In this step, we will
+ensure that cards are rendered out of the component.
 
-We will begin with refactoring logic behind cards. In this step, your objective is 
-to wire ngRx store up with the application and provide an initial reducer. 
-It will not be used by any component yet.
-
-1. Prepare a directory within your module that will contain store-related files
-2. Create a dummy cards reducer that will default to a initial state and won't
-   react to any action. The initial state should be based on the cards we're 
-   manually providing in `cards.service.ts`.  
-3. Import `StoreModule` to your *application module* and ensure it uses your reducer.
+1. Refactor: Define a type for the cards state shape that will be used by the reducer.
+2. Render Cards out of the state: replace Cards Service within Project component
+   with the cards store (HINT: Inject `Store<...>`).
+3. Within the cards component, expose the list of cards to the template using 
+   `select` method. Notice that the method returns an `Observable`.
+  
 
 ## Development and environment setup
 

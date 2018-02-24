@@ -1,0 +1,75 @@
+diff --git a/src/app/app.module.ts b/src/app/app.module.ts
+index b428be1..e29d317 100644
+--- a/src/app/app.module.ts
++++ b/src/app/app.module.ts
+@@ -1,13 +1,14 @@
+ import { BrowserModule } from '@angular/platform-browser';
+ import { NgModule } from '@angular/core';
+-
++import { StoreModule } from '@ngrx/store';
+ 
+ import { AppComponent } from './app.component';
+ import { TaskComponent } from './components/task/task.component';
+ import { CardComponent } from './components/card/card.component';
+ import { ProjectComponent } from './components/project/project.component';
+-import {CardsService} from './services/cards.service';
+-import {FormsModule, ReactiveFormsModule} from '@angular/forms';
++import { CardsService } from './services/cards.service';
++import { FormsModule, ReactiveFormsModule } from '@angular/forms';
++import { cardsReducer } from './store/cards.reducer';
+ 
+ 
+ @NgModule({
+@@ -21,10 +22,14 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+     BrowserModule,
+     FormsModule,
+     ReactiveFormsModule,
++    StoreModule.forRoot({
++      cards: cardsReducer,
++    })
+   ],
+   providers: [
+     CardsService,
+   ],
+   bootstrap: [AppComponent]
+ })
+-export class AppModule { }
++export class AppModule {
++}
+diff --git a/src/app/store/cards.reducer.spec.ts b/src/app/store/cards.reducer.spec.ts
+new file mode 100644
+index 0000000..09a3a32
+--- /dev/null
++++ b/src/app/store/cards.reducer.spec.ts
+@@ -0,0 +1,9 @@
++import { cardsReducer } from './cards.reducer';
++
++describe('Reducer', function () {
++  it('should provide initial state', function () {
++    const stateAfter = cardsReducer(undefined, undefined);
++    expect(stateAfter.length).toEqual(3);
++    expect(stateAfter[0].tasks.length).toEqual(3);
++  });
++});
+diff --git a/src/app/store/cards.reducer.ts b/src/app/store/cards.reducer.ts
+new file mode 100644
+index 0000000..492cb43
+--- /dev/null
++++ b/src/app/store/cards.reducer.ts
+@@ -0,0 +1,16 @@
++import {CardModel, TaskModel} from '../models';
++
++const initialState = [
++  new CardModel('Todos'),
++  new CardModel('In progress'),
++  new CardModel('Todos'),
++];
++
++['Use Redux!', 'Learn TypeScript', 'Read Angular docs']
++  .forEach(function addTask(title) {
++    initialState[0].addTask(new TaskModel(title));
++  });
++
++export function cardsReducer(state: any = initialState, action: any) {
++  return state;
++}
