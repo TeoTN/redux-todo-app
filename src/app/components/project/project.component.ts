@@ -2,7 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CardModel } from '../../models';
 import { Observable } from 'rxjs/Observable';
 import { Store, select } from '@ngrx/store';
-import { CardsState } from '../../store/cards.reducer';
+import { CardsState, getCardsState } from '../../store/cards.reducer';
+import { State } from '../../store';
 
 
 @Component({
@@ -13,13 +14,13 @@ import { CardsState } from '../../store/cards.reducer';
 export class ProjectComponent implements OnInit {
   public cards$: Observable<CardModel[]>;
 
-  constructor(private store: Store<CardsState>) {
+  constructor(private store: Store<State>) {
   }
 
   ngOnInit() {
     this.cards$ = this.store
       .pipe(
-        select('cards'),
+        select(getCardsState),
       );
   }
 

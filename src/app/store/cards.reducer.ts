@@ -5,10 +5,11 @@ export type CardsState = CardModel[];
 const card1 = new CardModel('Todos');
 const card2 = new CardModel('In progress');
 const card3 = new CardModel('Done');
+const card4 = new CardModel('Rejected');
 card1.tasks = [0, 1, 2];
 
 const initialState = [
-  card1, card2, card3,
+  card1, card2, card3, card4,
 ];
 
 export function cardsReducer(state: CardsState = initialState, action: any): CardsState {
@@ -23,3 +24,5 @@ export function cardsReducer(state: CardsState = initialState, action: any): Car
       return state;
   }
 }
+
+export const getCardsState = state => state.cards;
