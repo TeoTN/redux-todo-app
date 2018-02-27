@@ -5,7 +5,8 @@ export type CardsState = CardModel[];
 const initialState = [
   new CardModel('Todos'),
   new CardModel('In progress'),
-  new CardModel('Todos'),
+  new CardModel('Done'),
+  new CardModel('Rejected'),
 ];
 
 ['Use Redux!', 'Learn TypeScript', 'Read Angular docs']
@@ -16,3 +17,5 @@ const initialState = [
 export function cardsReducer(state: CardsState = initialState, action: any): CardsState {
   return state;
 }
+
+export const getCardsState = state => state.cards;
