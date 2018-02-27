@@ -1,8 +1,8 @@
 diff --git a/src/app/components/project/project.component.ts b/src/app/components/project/project.component.ts
-index 83cea1b..e1b63a0 100644
+index 83cea1b..901c409 100644
 --- a/src/app/components/project/project.component.ts
 +++ b/src/app/components/project/project.component.ts
-@@ -1,7 +1,9 @@
+@@ -1,7 +1,10 @@
 -import {Component, OnInit} from '@angular/core';
 -import {CardsService} from '../../services/cards.service';
 -import {CardModel} from '../../models';
@@ -11,33 +11,34 @@ index 83cea1b..e1b63a0 100644
 +import { CardModel } from '../../models';
 +import { Observable } from 'rxjs/Observable';
 +import { Store, select } from '@ngrx/store';
-+import { CardsState } from '../../store/cards.reducer';
++import { CardsState, getCardsState } from '../../store/cards.reducer';
++import { State } from '../../store';
 +
  
  @Component({
    selector: 'app-project',
-@@ -11,11 +13,14 @@ import {Observable} from 'rxjs/Observable';
+@@ -11,11 +14,14 @@ import {Observable} from 'rxjs/Observable';
  export class ProjectComponent implements OnInit {
    public cards$: Observable<CardModel[]>;
  
 -  constructor(private cardsSvc: CardsService) {
 -    this.cards$ = cardsSvc.cards$;
-+  constructor(private store: Store<CardsState>) {
++  constructor(private store: Store<State>) {
    }
  
    ngOnInit() {
 +    this.cards$ = this.store
 +      .pipe(
-+        select('cards'),
++        select(getCardsState),
 +      );
    }
  
  }
 diff --git a/src/app/store/cards.reducer.ts b/src/app/store/cards.reducer.ts
-index 492cb43..91a8d17 100644
+index 492cb43..89a7432 100644
 --- a/src/app/store/cards.reducer.ts
 +++ b/src/app/store/cards.reducer.ts
-@@ -1,5 +1,7 @@
+@@ -1,9 +1,12 @@
  import {CardModel, TaskModel} from '../models';
  
 +export type CardsState = CardModel[];
@@ -45,7 +46,13 @@ index 492cb43..91a8d17 100644
  const initialState = [
    new CardModel('Todos'),
    new CardModel('In progress'),
-@@ -11,6 +13,6 @@ const initialState = [
+-  new CardModel('Todos'),
++  new CardModel('Done'),
++  new CardModel('Rejected'),
+ ];
+ 
+ ['Use Redux!', 'Learn TypeScript', 'Read Angular docs']
+@@ -11,6 +14,8 @@ const initialState = [
      initialState[0].addTask(new TaskModel(title));
    });
  
@@ -53,3 +60,17 @@ index 492cb43..91a8d17 100644
 +export function cardsReducer(state: CardsState = initialState, action: any): CardsState {
    return state;
  }
++
++export const getCardsState = state => state.cards;
+diff --git a/src/app/store/index.ts b/src/app/store/index.ts
+new file mode 100644
+index 0000000..5585eed
+--- /dev/null
++++ b/src/app/store/index.ts
+@@ -0,0 +1,5 @@
++import { CardsState } from "./cards.reducer";
++
++export type State = {
++    cards: CardsState,
++}
+\ No newline at end of file
